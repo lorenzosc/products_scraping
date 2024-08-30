@@ -29,6 +29,9 @@ class SiteScrape:
     def open_site (self) -> None:
         self.driver.get(self.home)
 
+    def close (self) -> None:
+        self.driver.quit()
+
     def get_searchbar (self) -> WebElement:
         pass
 

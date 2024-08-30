@@ -12,6 +12,7 @@ from bs4.element import Tag
 from typing import Union, Any
 import pandas as pd
 import re
+import datetime
 
 from .scraper import SiteScrape
 
@@ -67,3 +68,8 @@ class AmazonScrape(SiteScrape):
         imgtag = element.find('img', class_='s-image')
 
         return imgtag['src']
+    
+    def get_and_save_objects(self, text: str) -> None:
+        df = super().get_and_save_objects(text)
+        today = datetime.date.today().strftime("%Y-%m-%d")
+        df.to_csv(f"/opt/airflow/data/amazon_{today}.csv", index=False)
