@@ -1,3 +1,9 @@
 data/
 
 logs/
+
+postgres-data/
+
+**.pyc
+
+*.csv
