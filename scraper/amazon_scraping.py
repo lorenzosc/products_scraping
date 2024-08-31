@@ -31,18 +31,20 @@ class AmazonScrape(SiteScrape):
         return soup.find_all('div', {'data-component-type': 's-search-result'})
     
     def get_object_name (self, element: Tag) -> str:
-        return element.h2.text().strip()
+        title = element.find('h2').text.strip()
+        return title
     
     def get_object_price (self, element: Tag) -> float:
         price_whole = element.find('span', 'a-price-whole')
         price_fraction = element.find('span', 'a-price-fraction')
 
         if price_whole and price_fraction:
-            price = price_whole.text.replace(".", "") + "." + price_fraction.text
+            price = price_whole.text.replace(".", "").replace(",", "") + "." + price_fraction.text
+            price = float(price)
         else:
             print(f"No price could be found for element {self.get_object_name(element)}")
+            price = None
 
-        price = float(price)
         return price
         
     def get_object_discounted_price (self, element: Tag) -> Union[float, None]:
@@ -73,3 +75,10 @@ class AmazonScrape(SiteScrape):
         df = super().get_and_save_objects(text)
         today = datetime.date.today().strftime("%Y-%m-%d")
         df.to_csv(f"/opt/airflow/data/amazon_{today}.csv", index=False)
+
+
+if __name__ == "__main__":
+
+    amazon = AmazonScrape()
+    amazon.get_and_save_objects('Cadeira Gamer')
+    amazon.close()
