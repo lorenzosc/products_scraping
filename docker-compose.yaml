@@ -1,4 +1,3 @@
-version: '3'
 services:
   postgres:
     image: postgres:13
@@ -8,36 +7,70 @@ services:
       POSTGRES_DB: airflow
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 10s
+      retries: 5
 
-  webserver:
-    build: .
+  airflow-init:
+    image: apache/airflow:2.10.0
     environment:
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    entrypoint: ["bash", "-c", "airflow db migrate && airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin || true"]    
+    healthcheck:
+      test: ["CMD-SHELL", "airflow db check"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - ./dags:/opt/airflow/dags      
+      - ./scraper:/opt/airflow/scraper
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+
+  webserver:
+    image: my-airflow-scraper:latest
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      PYTHONPATH: /opt/airflow/
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - ./data:/opt/airflow/data
+      - ./scraper:/opt/airflow/scraper
     ports:
       - "8080:8080"
-    command: webserver
+    command: ['airflow', 'webserver']
     restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_healthy
 
   scheduler:
-    build: .
+    image: my-airflow-scraper:latest
     environment:
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
-    depends_on:
-      - postgres
-      - webserver
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      PYTHONPATH: /opt/airflow/
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - ./data:/opt/airflow/data 
-    command: scheduler
+      - ./scraper:/opt/airflow/scraper
+    command: ["airflow", "scheduler"]
     restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
