@@ -15,7 +15,7 @@ default_args = {
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
-    'retry_delay': timedelta(minutes=5),
+    'retry_delay': timedelta(seconds=10),
 }
 
 def scrape_amazon_prices():
@@ -26,6 +26,7 @@ def scrape_amazon_prices():
 dag = DAG(
     'scrape_amazon_prices',
     default_args=default_args,
+    catchup=False,
     description='Scrape gaming chairs prices from Amazon daily',
     schedule_interval=timedelta(days=1),
 )
