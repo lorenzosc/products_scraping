@@ -6,7 +6,6 @@ ARG AIRFLOW_VERSION=2.7.0
 ARG PYTHON_VERSION=3.11
 ARG CONSTRAINTS_FILE=https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt
 
-
 # Set environment variables
 ENV AIRFLOW_HOME=/opt/airflow 
 ENV PYTHONPATH=/opt/airflow/scraper
@@ -26,18 +25,8 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --upgrade pip \
     && pip install apache-airflow==${AIRFLOW_VERSION} \
     --constraint "${CONSTRAINTS_FILE}"
-
-# Copy the requirements file
-COPY requirements.txt .
-
-# Install additional Python packages
-RUN pip install -r requirements.txt
-
-# Create Airflow directories
-RUN mkdir -p ${AIRFLOW_HOME} /opt/airflow/dags /opt/airflow/logs /opt/airflow/plugins /opt/airflow/scraper /opt/airflow/data
-
-
-# Install dependencies
+    
+    # Install dependencies
 RUN apt-get update && \
     apt-get install -y \
     wget \
@@ -62,18 +51,29 @@ RUN apt-get update && \
     libnss3 \
     xdg-utils
 
-# Download and install Google Chrome
+    # Download and install Google Chrome
 RUN curl -sS https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
     sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list' && \
     apt-get update && \
     apt-get install -y google-chrome-stable
-
-# Install ChromeDriver
+    
+    # Install ChromeDriver
 RUN wget -q "https://storage.googleapis.com/chrome-for-testing-public/128.0.6613.86/linux64/chromedriver-linux64.zip" && \
     unzip chromedriver-linux64.zip && \
     mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
     chmod +x /usr/local/bin/chromedriver && \
     rm chromedriver-linux64.zip
+    
+
+    
+# Copy the requirements file
+COPY requirements.txt .
+
+# Install additional Python packages
+RUN pip install -r requirements.txt
+
+# Create Airflow directories
+RUN mkdir -p ${AIRFLOW_HOME} /opt/airflow/dags /opt/airflow/logs /opt/airflow/plugins /opt/airflow/scraper /opt/airflow/data
 
 # Set environment variables
 ENV CHROME_BIN=/usr/bin/google-chrome
