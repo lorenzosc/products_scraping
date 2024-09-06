@@ -13,6 +13,8 @@ from typing import Union, Any
 import pandas as pd
 import re
 import datetime
+import time
+import random
 
 from .scraper import SiteScrape
 
@@ -70,6 +72,21 @@ class AmazonScrape(SiteScrape):
         imgtag = element.find('img', class_='s-image')
 
         return imgtag['src']
+    
+    def in_captcha(self) -> bool:
+        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+        captcha_form = soup.find('form', {'method': 'get', 'action': "/errors/validateCaptcha"})
+
+        if captcha_form:
+            return True
+        else:
+            return False
+    
+    def pass_captcha(self) -> None:
+        espera = 2 + 3*random.random()
+        time.sleep(espera)
+        self.driver.refresh()
+        time.sleep(1)
     
     def get_and_save_objects(self, text: str) -> None:
         df = super().get_and_save_objects(text)
