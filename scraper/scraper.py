@@ -15,6 +15,7 @@ from bs4.element import Tag
 from typing import Union, Any
 import pandas as pd
 import time
+import psycopg2
 from fake_useragent import UserAgent
 
 class SiteScrape:
