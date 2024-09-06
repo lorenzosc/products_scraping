@@ -5,6 +5,7 @@ numpy==2.1.1
 opencv_python==4.10.0.84
 pandas==2.2.2
 Pillow==10.4.0
+psycopg2==2.9.9
 Requests==2.32.3
 selenium==4.24.0
 selenium_stealth==1.0.6
