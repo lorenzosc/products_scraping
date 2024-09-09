@@ -91,7 +91,7 @@ class AmazonScrape(SiteScrape):
     def get_and_save_objects(self, text: str) -> None:
         df = super().get_and_save_objects(text)
         today = datetime.date.today().strftime("%Y-%m-%d")
-        df.to_csv(f"/opt/airflow/data/amazon_{today}.csv", index=False)
+        df.to_csv(f"/opt/airflow/data/amazon/amazon_{today}.csv", index=False)
 
 
 if __name__ == "__main__":
