@@ -28,7 +28,7 @@ dag = DAG(
     default_args=default_args,
     catchup=False,
     description='Scrape gaming chairs prices from Amazon daily',
-    schedule_interval=timedelta(days=1),
+    schedule_interval='0 12 * * *',
 )
 
 t1 = PythonOperator(
